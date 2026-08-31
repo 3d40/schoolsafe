@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - SchoolSafe{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== LOGIN PAGE CUSTOM ===== */
+    .login-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f3ff 0%, #fdf2f8 50%, #f3f0ff 100%);
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Decorative floating elements */
+    .login-wrapper::before {
+        content: '';
+        position: absolute;
+        top: -120px;
+        right: -120px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .login-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: -80px;
+        left: -80px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        border: none;
+        border-radius: 32px;
+        box-shadow: 0 20px 60px rgba(124, 58, 237, 0.12), 0 8px 24px rgba(0, 0, 0, 0.04);
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 460px;
+        position: relative;
+        z-index: 2;
+        transition: transform 0.3s ease;
+    }
+
+    .login-card:hover {
+        transform: translateY(-4px);
+    }
+
+    /* Logo area */
+    .login-logo {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 1.75rem;
+    }
+
+    .login-logo img {
+        height: 72px;
+        width: auto;
+        filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.2));
+        transition: transform 0.3s ease;
+    }
+
+    .login-logo img:hover {
+        transform: scale(1.05) rotate(-2deg);
+    }
+
+    .login-logo .brand-name {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-top: 0.5rem;
+        background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 40%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+    }
+
+    .login-logo .brand-sub {
+        font-size: 0.85rem;
+        color: #8b7aa8;
+        font-weight: 500;
+        margin-top: 0.1rem;
+        letter-spacing: 0.3px;
+    }
+
+    /* Form elements */
+    .login-card .form-label {
+        font-weight: 600;
+        color: #4c3d6b;
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .login-card .form-label i {
+        color: #7c3aed;
+        margin-right: 6px;
+    }
+
+    .login-card .form-control {
+        border: 2px solid #e5e0f0;
+        border-radius: 16px;
+        padding: 0.8rem 1.2rem;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #faf9fe;
+    }
+
+    .login-card .form-control:focus {
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+        background: #ffffff;
+    }
+
+    .login-card .form-control::placeholder {
+        color: #b5a9c9;
+        font-weight: 400;
+        font-size: 0.95rem;
+    }
+
+    /* Buttons */
+    .btn-login {
+        background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #ec4899 100%);
+        border: none;
+        border-radius: 16px;
+        padding: 0.85rem;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #fff;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 24px rgba(124, 58, 237, 0.3);
+        width: 100%;
+        letter-spacing: 0.3px;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 36px rgba(124, 58, 237, 0.4);
+        color: #fff;
+    }
+
+    .btn-login:active {
+        transform: scale(0.98);
+    }
+
+    .btn-login i {
+        margin-right: 8px;
+    }
+
+    /* Demo accounts */
+    .demo-section {
+        background: linear-gradient(135deg, #f5f3ff 0%, #fdf2f8 100%);
+        border-radius: 18px;
+        padding: 1.25rem 1.5rem;
+        margin-top: 1.5rem;
+        border: 1px solid rgba(124, 58, 237, 0.08);
+    }
+
+    .demo-section .demo-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #8b7aa8;
+        margin-bottom: 0.75rem;
+    }
+
+    .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+
+    .demo-item {
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 12px;
+        padding: 0.5rem 0.4rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .demo-item:hover {
+        background: #ffffff;
+        border-color: #7c3aed;
+        transform: scale(1.02);
+    }
+
+    .demo-item .badge-role {
+        font-size: 0.6rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-role.siswa {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-role.guru {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-role.admin {
+        background: #fce4ec;
+        color: #b71c1c;
+    }
+
+    .demo-item .demo-cred {
+        font-size: 0.7rem;
+        color: #6d6185;
+        font-weight: 600;
+        margin-top: 0.2rem;
+        display: block;
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Footer link */
+    .register-link {
+        color: #7c3aed;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .register-link:hover {
+        color: #ec4899;
+        text-decoration: underline;
+    }
+
+    /* Alert styling */
+    .login-card .alert {
+        border-radius: 16px;
+        border: none;
+        padding: 0.9rem 1.2rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .login-card .alert-danger {
+        background: #fef2f2;
+        color: #991b1b;
+        border-left: 5px solid #ef4444;
+    }
+
+    /* Divider */
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #e5e0f0, transparent);
+    }
+
+    .divider span {
+        color: #b5a9c9;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0 0.5rem;
+    }
+
+    /* Footer copyright */
+    .login-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #b5a9c9;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .login-footer i {
+        color: #ec4899;
+        margin: 0 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+        .login-card {
+            padding: 1.75rem 1.25rem;
+        }
+
+        .login-logo img {
+            height: 56px;
+        }
+
+        .login-logo .brand-name {
+            font-size: 1.4rem;
+        }
+
+        .demo-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.4rem;
+        }
+
+        .demo-item .demo-cred {
+            font-size: 0.6rem;
+        }
+
+        .btn-login {
+            font-size: 0.95rem;
+            padding: 0.7rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .demo-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <!-- ===== LOGO + BRAND ===== -->
+        <div class="login-logo">
+            <img src="{% static 'images/logonuril.png' %}" alt="SchoolSafe Logo" />
+            <span class="brand-name">SchoolSafe</span>
+            <span class="brand-sub">Sistem Pelaporan Fasilitas Sekolah</span>
+        </div>
+
+        <!-- ===== FORM ===== -->
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Username atau password salah. Silakan coba lagi.
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="username" class="form-label">
+                    <i class="bi bi-person"></i> Username
+                </label>
+                <input type="text" name="username" id="username"
+                       class="form-control"
+                       placeholder="Masukkan username Anda"
+                       required autofocus>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">
+                    <i class="bi bi-lock"></i> Password
+                </label>
+                <input type="password" name="password" id="password"
+                       class="form-control"
+                       placeholder="Masukkan password Anda"
+                       required>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </button>
+        </form>
+
+        <!-- ===== DIVIDER ===== -->
+        <div class="divider">
+            <span>atau</span>
+        </div>
+
+        <!-- ===== REGISTER LINK ===== -->
+        <div class="text-center">
+            <p class="text-muted" style="font-size: 0.9rem; font-weight: 500;">
+                <i class="bi bi-person-plus" style="color: #7c3aed;"></i>
+                Belum punya akun?
+                <a href="{% url 'accounts:register' %}" class="register-link">
+                    Daftar sekarang
+                </a>
+            </p>
+        </div>
+
+        <!-- ===== DEMO ACCOUNTS ===== -->
+        <div class="demo-section">
+            <div class="demo-title">
+                <i class="bi bi-key me-1"></i> Akun Demo
+            </div>
+            <div class="demo-grid">
+                <div class="demo-item">
+                    <span class="badge-role siswa">Siswa</span>
+                    <span class="demo-cred">siswa1 / siswa123</span>
+                </div>
+                <div class="demo-item">
+                    <span class="badge-role guru">Guru</span>
+                    <span class="demo-cred">guru1 / guru123</span>
+                </div>
+                <div class="demo-item">
+                    <span class="badge-role admin">Admin</span>
+                    <span class="demo-cred">admin / admin123</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <div class="login-footer">
+            <i class="bi bi-shield-check"></i>
+            SchoolSafe &copy; 2026 — Sistem Pelaporan Digital
+        </div>
+    </div>
+</div>
+{% endblock %}

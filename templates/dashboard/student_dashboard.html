@@ -1,0 +1,512 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Siswa - SchoolSafe{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== DASHBOARD CUSTOM ===== */
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h2 {
+        font-weight: 800;
+        background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 40%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: inline-block;
+    }
+
+    .dashboard-header h2 i {
+        -webkit-text-fill-color: #7c3aed;
+        margin-right: 6px;
+    }
+
+    .dashboard-header .welcome-text {
+        font-size: 1rem;
+        color: #6d6185;
+        font-weight: 500;
+        margin-top: 0.2rem;
+    }
+
+    .dashboard-header .welcome-text strong {
+        color: #4c3d6b;
+        font-weight: 700;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+        border: none;
+        border-radius: 20px;
+        padding: 1.25rem 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #ffffff;
+        box-shadow: 0 4px 16px rgba(124, 58, 237, 0.06);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .stat-card.purple::before {
+        background: linear-gradient(90deg, #7c3aed, #a78bfa);
+    }
+
+    .stat-card.pink::before {
+        background: linear-gradient(90deg, #ec4899, #f472b6);
+    }
+
+    .stat-card.orange::before {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    .stat-card.green::before {
+        background: linear-gradient(90deg, #10b981, #34d399);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 40px rgba(124, 58, 237, 0.10);
+    }
+
+    .stat-card .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-card .stat-icon.purple {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
+    .stat-card .stat-icon.pink {
+        background: #fdf2f8;
+        color: #ec4899;
+    }
+
+    .stat-card .stat-icon.orange {
+        background: #fffbeb;
+        color: #f59e0b;
+    }
+
+    .stat-card .stat-icon.green {
+        background: #ecfdf5;
+        color: #10b981;
+    }
+
+    .stat-card .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #221a34;
+        line-height: 1.2;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #8b7aa8;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    /* Tombol Buat Laporan */
+    .btn-create-report {
+        background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #ec4899 100%);
+        border: none;
+        border-radius: 16px;
+        padding: 0.9rem 2.5rem;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #fff;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 24px rgba(124, 58, 237, 0.25);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .btn-create-report:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 36px rgba(124, 58, 237, 0.35);
+        color: #fff;
+    }
+
+    .btn-create-report:active {
+        transform: scale(0.97);
+    }
+
+    .btn-create-report i {
+        font-size: 1.3rem;
+    }
+
+    /* Card Laporan */
+    .report-card {
+        border: none;
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.06);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .report-card:hover {
+        box-shadow: 0 12px 44px rgba(124, 58, 237, 0.10);
+    }
+
+    .report-card .card-header {
+        background: #faf9fe;
+        border-bottom: 2px solid #f3f0ff;
+        padding: 1.2rem 1.5rem;
+    }
+
+    .report-card .card-header h5 {
+        font-weight: 700;
+        color: #362a50;
+    }
+
+    .report-card .card-header h5 i {
+        color: #7c3aed;
+        margin-right: 8px;
+    }
+
+    /* Tabel */
+    .report-table {
+        margin-bottom: 0;
+    }
+
+    .report-table thead th {
+        background: #f5f3ff;
+        color: #4c3d6b;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 1.2rem;
+        border-bottom: none;
+    }
+
+    .report-table tbody td {
+        padding: 1rem 1.2rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f3f0ff;
+        font-weight: 500;
+        color: #362a50;
+    }
+
+    .report-table tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .report-table tbody tr:hover {
+        background: #f5f3ff;
+    }
+
+    .report-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Badge di tabel */
+    .badge-urgency {
+        padding: 0.35rem 1rem;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-urgency.low {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-urgency.medium {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-urgency.high {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-status {
+        padding: 0.35rem 1rem;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-status.waiting {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-status.repairing {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
+    .badge-status.completed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 3rem 1.5rem;
+        text-align: center;
+    }
+
+    .empty-state i {
+        font-size: 3.5rem;
+        color: #c4bcd6;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: #8b7aa8;
+        font-weight: 500;
+        font-size: 1rem;
+    }
+
+    .empty-state .btn-empty {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        border: none;
+        border-radius: 14px;
+        padding: 0.6rem 2rem;
+        font-weight: 600;
+        color: #fff;
+        transition: all 0.3s ease;
+        margin-top: 0.5rem;
+    }
+
+    .empty-state .btn-empty:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
+        color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stat-card .stat-number {
+            font-size: 1.5rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .btn-create-report {
+            padding: 0.7rem 1.5rem;
+            font-size: 0.9rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .report-table thead th,
+        .report-table tbody td {
+            padding: 0.7rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .report-table .d-none-mobile {
+            display: none;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stat-card .stat-number {
+            font-size: 1.3rem;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+        }
+
+        .stat-card .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- ===== HEADER ===== -->
+    <div class="dashboard-header">
+        <h2>
+            <i class="bi bi-speedometer2"></i> Dashboard 
+            {% if is_student %}Siswa{% else %}Guru{% endif %}
+        </h2>
+        <p class="welcome-text">
+            Selamat datang kembali, <strong>{{ user.get_full_name|default:user.username }}</strong>!
+            <span class="text-muted" style="font-weight: 400;">— Semangat melaporkan!</span>
+        </p>
+    </div>
+
+    <!-- ===== STATISTIK CARDS ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card purple">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Total Laporan</div>
+                        <div class="stat-number">{{ total_reports }}</div>
+                    </div>
+                    <div class="stat-icon purple">
+                        <i class="bi bi-clipboard-data"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card orange">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Menunggu</div>
+                        <div class="stat-number">{{ waiting_count }}</div>
+                    </div>
+                    <div class="stat-icon orange">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card pink">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Sedang Diperbaiki</div>
+                        <div class="stat-number">{{ repairing_count }}</div>
+                    </div>
+                    <div class="stat-icon pink">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card green">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Selesai</div>
+                        <div class="stat-number">{{ completed_count }}</div>
+                    </div>
+                    <div class="stat-icon green">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOMBOL BUAT LAPORAN ===== -->
+    <div class="mb-4">
+        <a href="{% url 'reports:create' %}" class="btn-create-report">
+            <i class="bi bi-plus-circle"></i> Buat Laporan Baru
+        </a>
+    </div>
+
+    <!-- ===== DAFTAR LAPORAN ===== -->
+    <div class="report-card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-list-check"></i> Laporan Saya
+                <span class="badge bg-purple-soft text-purple ms-2" style="font-weight: 600; border-radius: 30px; padding: 0.2rem 0.8rem; background: #f5f3ff; color: #7c3aed;">
+                    {{ reports|length }}
+                </span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if reports %}
+                <div class="table-responsive">
+                    <table class="report-table table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Jenis Kerusakan</th>
+                                <th>Lokasi</th>
+                                <th class="d-none d-md-table-cell">Urgensi</th>
+                                <th class="d-none d-lg-table-cell">Tanggal</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                                <tr onclick="window.location.href='{% url 'reports:detail' report.id %}'">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ report.damage_type.name }}</td>
+                                    <td>{{ report.location.name }}</td>
+                                    <td class="d-none d-md-table-cell">
+                                        <span class="badge-urgency {{ report.get_urgency_badge|cut:'badge-' }}">
+                                            <i class="bi {{ report.get_urgency_icon }}"></i>
+                                            {{ report.get_urgency_display }}
+                                        </span>
+                                    </td>
+                                    <td class="d-none d-lg-table-cell" style="font-size: 0.85rem; color: #6d6185;">
+                                        {{ report.created_at|date:"d M Y" }}
+                                        <br><small style="font-size: 0.7rem;">{{ report.created_at|date:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status {{ report.get_status_badge|cut:'badge-' }}">
+                                            <i class="bi {{ report.get_status_icon }}"></i>
+                                            {{ report.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if reports.count > 20 %}
+                    <div class="text-center py-3 border-top">
+                        <a href="#" class="btn btn-outline-purple" style="border-radius: 30px; padding: 0.4rem 2rem; font-weight: 600;">
+                            Lihat Semua Laporan
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <!-- ===== EMPTY STATE ===== -->
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p>Belum ada laporan yang dibuat</p>
+                    <a href="{% url 'reports:create' %}" class="btn-empty">
+                        <i class="bi bi-plus-circle"></i> Buat Laporan Pertama
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

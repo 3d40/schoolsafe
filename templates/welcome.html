@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Selamat Datang di SchoolSafe{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-75">
+    <div class="col-md-8 text-center">
+        <div class="card shadow-lg">
+            <div class="card-body p-5">
+                <div class="display-1 text-primary mb-4">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h1 class="display-4 fw-bold text-primary mb-3">SchoolSafe</h1>
+                <p class="lead mb-4">
+                    Sistem Pelaporan Digital untuk Mempercepat Penanganan Kerusakan Fasilitas Sekolah
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.min-vh-75 {
+    min-height: 75vh;
+}
+</style>
+{% endblock %}

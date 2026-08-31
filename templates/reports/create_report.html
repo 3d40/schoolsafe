@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Buat Laporan - SchoolSafe{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-image {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        border: 2px dashed #dee2e6;
+        padding: 10px;
+        margin-top: 10px;
+        display: none;
+    }
+    .form-help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0 fw-bold">
+                    <i class="bi bi-plus-circle"></i> Buat Laporan Baru
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- Informasi Pelapor -->
+                <div class="alert alert-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <i class="bi bi-person"></i> <strong>Pelapor:</strong> {{ user_full_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <i class="bi bi-tag"></i> <strong>Peran:</strong> {{ user_role }}
+                        </div>
+                        <div class="col-12 mt-2">
+                            <i class="bi bi-calendar"></i> <strong>Tanggal:</strong> {{ today|date:"d M Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" id="reportForm">
+                    {% csrf_token %}
+                    
+                    <!-- Jenis Kerusakan -->
+                    <div class="mb-3">
+                        <label for="{{ form.damage_type.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-tools text-primary"></i> Jenis Kerusakan
+                        </label>
+                        {{ form.damage_type }}
+                        {% if form.damage_type.errors %}
+                            <div class="text-danger small">{{ form.damage_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Lokasi -->
+                    <div class="mb-3">
+                        <label for="{{ form.location.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-geo-alt text-primary"></i> Lokasi Fasilitas
+                        </label>
+                        {{ form.location }}
+                        {% if form.location.errors %}
+                            <div class="text-danger small">{{ form.location.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Tingkat Urgensi -->
+                    <div class="mb-3">
+                        <label for="{{ form.urgency.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-exclamation-triangle text-primary"></i> Tingkat Urgensi
+                        </label>
+                        {{ form.urgency }}
+                        <div class="form-help-text mt-1">
+                            <span class="badge badge-low">Rendah</span> - Tidak mengganggu kegiatan secara signifikan<br>
+                            <span class="badge badge-medium">Sedang</span> - Cukup mengganggu kegiatan dan perlu segera ditangani<br>
+                            <span class="badge badge-high">Tinggi</span> - Berpotensi membahayakan atau mengganggu secara serius
+                        </div>
+                        {% if form.urgency.errors %}
+                            <div class="text-danger small">{{ form.urgency.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Keterangan -->
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-file-text text-primary"></i> Keterangan
+                        </label>
+                        {{ form.description }}
+                        <div class="form-help-text">{{ form.description.help_text }}</div>
+                        {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Foto -->
+                    <div class="mb-3">
+                        <label for="{{ form.photo.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-image text-primary"></i> Foto Kerusakan
+                        </label>
+                        {{ form.photo }}
+                        <div class="form-help-text">{{ form.photo.help_text }}</div>
+                        <div id="photoPreviewContainer" class="mt-2">
+                            <img id="photoPreview" class="preview-image" alt="Preview Foto">
+                        </div>
+                        {% if form.photo.errors %}
+                            <div class="text-danger small">{{ form.photo.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                            <i class="bi bi-send"></i> Kirim Laporan
+                        </button>
+                        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Batal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Informasi Tambahan -->
+        <div class="card mt-3 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <i class="bi bi-clock-history display-6 text-warning"></i>
+                        <p class="text-muted small mt-1">Laporan akan segera diproses</p>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="bi bi-shield-check display-6 text-success"></i>
+                        <p class="text-muted small mt-1">Data aman dan terenkripsi</p>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="bi bi-bell display-6 text-primary"></i>
+                        <p class="text-muted small mt-1">Dapatkan notifikasi status</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Preview foto sebelum upload
+document.getElementById('photo-input').addEventListener('change', function(e) {
+    const preview = document.getElementById('photoPreview');
+    const file = e.target.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+        preview.src = '';
+    }
+});
+
+// Validasi form sebelum submit
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    const required = this.querySelectorAll('[required]');
+    let isValid = true;
+    
+    required.forEach(function(input) {
+        if (!input.value.trim()) {
+            input.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Mohon lengkapi semua field yang wajib diisi.');
+    }
+});
+
+// Auto-hide alerts
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(function() {
+                alert.remove();
+            }, 500);
+        }, 5000);
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

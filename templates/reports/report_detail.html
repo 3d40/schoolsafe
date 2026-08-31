@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detail Laporan - SchoolSafe{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Detail Laporan -->
+        <div class="card shadow-lg border-0 mb-4">
+            <div class="card-header bg-primary text-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="bi bi-file-text"></i> Detail Laporan
+                    </h4>
+                    <span class="badge bg-light text-dark fs-6">
+                        {{ report.report_number }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <!-- Informasi Pelapor -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1"><i class="bi bi-person"></i> Pelapor</h6>
+                        <p class="fw-bold">{{ report.reporter.get_full_name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1"><i class="bi bi-tag"></i> Peran</h6>
+                        <p class="fw-bold">{{ report.get_reporter_role }}</p>
+                    </div>
+                </div>
+                
+                <!-- Detail Kerusakan -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1"><i class="bi bi-tools"></i> Jenis Kerusakan</h6>
+                        <p class="fw-bold">{{ report.damage_type.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1"><i class="bi bi-geo-alt"></i> Lokasi</h6>
+                        <p class="fw-bold">{{ report.location.name }}</p>
+                    </div>
+                </div>
+                
+                <!-- Urgensi dan Status -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1"><i class="bi bi-exclamation-triangle"></i> Tingkat Urgensi</h6>
+                        <span class="badge {{ report.get_urgency_badge }} fs-6 p-2">
+                            <i class="bi {{ report.get_urgency_icon }}"></i>
+                            {{ report.get_urgency_display }}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1"><i class="bi bi-info-circle"></i> Status</h6>
+                        <span class="badge {{ report.get_status_badge }} fs-6 p-2">
+                            <i class="bi {{ report.get_status_icon }}"></i>
+                            {{ report.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Tanggal -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1"><i class="bi bi-calendar-plus"></i> Tanggal Laporan</h6>
+                        <p class="fw-bold">{{ report.created_at|date:"d M Y H:i" }}</p>
+                    </div>
+                    {% if report.completed_at %}
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1"><i class="bi bi-calendar-check"></i> Tanggal Selesai</h6>
+                            <p class="fw-bold text-success">{{ report.completed_at|date:"d M Y H:i" }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Keterangan -->
+                <div class="mb-4">
+                    <h6 class="text-muted mb-1"><i class="bi bi-file-text"></i> Keterangan</h6>
+                    <p class="fw-bold p-3 bg-light rounded">{{ report.description }}</p>
+                </div>
+                
+                <!-- Foto -->
+                {% if report.photo %}
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-1"><i class="bi bi-image"></i> Foto Kerusakan</h6>
+                        <img src="{{ report.photo.url }}" class="img-fluid rounded" style="max-height: 400px;" alt="Foto Kerusakan">
+                    </div>
+                {% endif %}
+                
+                <!-- Catatan Admin -->
+                {% if report.admin_note %}
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-1"><i class="bi bi-chat"></i> Catatan Petugas</h6>
+                        <p class="fw-bold p-3 bg-info bg-opacity-10 rounded border-start border-info border-4">
+                            {{ report.admin_note }}
+                        </p>
+                    </div>
+                {% endif %}
+                
+                <!-- Tombol Aksi -->
+                <div class="d-flex gap-2">
+                    <a href="{% url 'reports:list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Kembali
+                    </a>
+                    {% if report.status == 'waiting' and not is_admin %}
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash"></i> Hapus
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Timeline Riwayat -->
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-clock-history"></i> Riwayat Perbaikan
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                {% if history %}
+                    <div class="timeline">
+                        {% for item in history %}
+                            <div class="timeline-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-bold">
+                                            <i class="bi {{ item.get_status_icon|default:'bi-circle' }}"></i>
+                                            {% if item.old_status == item.new_status %}
+                                                Laporan dibuat
+                                            {% else %}
+                                                Status berubah: 
+                                                <span class="badge {{ item.get_status_badge|cut:'badge-' }}-waiting">
+                                                    {{ item.get_status_display|default:item.old_status }}
+                                                </span>
+                                                <i class="bi bi-arrow-right"></i>
+                                                <span class="badge {{ item.get_status_badge }}">
+                                                    {{ item.get_status_display|default:item.new_status }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-person"></i> {{ item.changed_by.get_full_name }}
+                                            {% if item.note %}
+                                                <br><i class="bi bi-chat"></i> {{ item.note }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="text-muted small text-end" style="min-width: 150px;">
+                                        {{ item.created_at|date:"d M Y H:i" }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-clock-history display-4 text-muted"></i>
+                        <p class="text-muted">Belum ada riwayat perbaikan</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar - Admin Panel -->
+    {% if is_admin %}
+        <div class="col-lg-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-shield-check"></i> Panel Admin
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="update_status" value="1">
+                        
+                        <div class="mb-3">
+                            <label for="{{ status_form.status.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-arrow-right-circle"></i> Ubah Status
+                            </label>
+                            {{ status_form.status }}
+                            {% if status_form.status.errors %}
+                                <div class="text-danger small">{{ status_form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ status_form.admin_note.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-chat"></i> Catatan Perbaikan
+                            </label>
+                            {{ status_form.admin_note }}
+                            {% if status_form.admin_note.errors %}
+                                <div class="text-danger small">{{ status_form.admin_note.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-save"></i> Update Status
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <div class="small">
+                        <p class="text-muted mb-1">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Skor Prioritas:</strong> {{ report.priority_score }}
+                        </p>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-calendar"></i> 
+                            <strong>Terakhir diupdate:</strong> {{ report.updated_at|date:"d M Y H:i" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal Delete (untuk user) -->
+{% if not is_admin and report.status == 'waiting' %}
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menghapus laporan <strong>{{ report.report_number }}</strong>?</p>
+                    <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Tindakan ini tidak dapat dibatalkan.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <form method="post" action="{% url 'reports:delete' report.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Hapus
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 3px solid #0d6efd;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 15px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #0d6efd;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 3px #0d6efd;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+</style>
+{% endblock %}

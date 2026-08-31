@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Daftar Laporan - SchoolSafe{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-list-check text-primary"></i> Daftar Laporan
+        </h2>
+        <p class="text-muted">Semua laporan yang telah dibuat</p>
+    </div>
+    
+    <!-- Filter dan Search -->
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Cari laporan..." 
+                               value="{{ search_query|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="waiting" {% if status_filter == 'waiting' %}selected{% endif %}>Menunggu</option>
+                            <option value="repairing" {% if status_filter == 'repairing' %}selected{% endif %}>Sedang Diperbaiki</option>
+                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Selesai</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="urgency" class="form-select">
+                            <option value="">Semua Urgensi</option>
+                            <option value="low" {% if urgency_filter == 'low' %}selected{% endif %}>Rendah</option>
+                            <option value="medium" {% if urgency_filter == 'medium' %}selected{% endif %}>Sedang</option>
+                            <option value="high" {% if urgency_filter == 'high' %}selected{% endif %}>Tinggi</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Daftar Laporan -->
+    <div class="col-12">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-list-check"></i> Laporan
+                        <span class="badge bg-primary ms-2">{{ reports.paginator.count }}</span>
+                    </h5>
+                    {% if not is_admin %}
+                        <a href="{% url 'reports:create' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Buat Laporan
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if reports %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nomor</th>
+                                    <th>Jenis Kerusakan</th>
+                                    <th>Lokasi</th>
+                                    <th>Urgensi</th>
+                                    <th>Tanggal</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in reports %}
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold">{{ report.report_number }}</span>
+                                        </td>
+                                        <td>{{ report.damage_type.name }}</td>
+                                        <td>{{ report.location.name }}</td>
+                                        <td>
+                                            <span class="badge {{ report.get_urgency_badge }}">
+                                                <i class="bi {{ report.get_urgency_icon }}"></i>
+                                                {{ report.get_urgency_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ report.created_at|date:"d M Y H:i" }}</td>
+                                        <td>
+                                            <span class="badge {{ report.get_status_badge }}">
+                                                <i class="bi {{ report.get_status_icon }}"></i>
+                                                {{ report.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'reports:detail' report.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if not is_admin and report.status == 'waiting' %}
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteModal{{ report.id }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if reports.has_other_pages %}
+                        <nav aria-label="Page navigation" class="mt-3">
+                            <ul class="pagination justify-content-center">
+                                {% if reports.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ reports.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in reports.paginator.page_range %}
+                                    {% if reports.number == num %}
+                                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                    {% elif num > reports.number|add:'-3' and num < reports.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if reports.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ reports.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if urgency_filter %}&urgency={{ urgency_filter }}{% endif %}">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <p class="text-muted mt-3">Belum ada laporan</p>
+                        {% if not is_admin %}
+                            <a href="{% url 'reports:create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Buat Laporan Pertama
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals untuk Delete -->
+{% for report in reports %}
+    {% if not is_admin and report.status == 'waiting' %}
+        <div class="modal fade" id="deleteModal{{ report.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi Hapus</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Apakah Anda yakin ingin menghapus laporan <strong>{{ report.report_number }}</strong>?</p>
+                        <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <form method="post" action="{% url 'reports:delete' report.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Hapus
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+{% endblock %}
